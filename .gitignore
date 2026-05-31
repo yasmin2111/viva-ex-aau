@@ -1,0 +1,30 @@
+# Private environment variables & credentials
+.env
+.env.local
+.env.*
+
+# Python Cache & Compilation
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+ENV/
+
+# OS-specific temporary files
+.DS_Store
+Thumbs.db
+db.sqlite3
+
+# Project-specific logs & audio captures (VIVA EX)
+*.log
+viva.log
+*.wav
+*.mp3
+/tmp/speech_*
+/tmp/exam_report_*
+
+# PDF and cropped exam papers (Sample/Testing assets)
+*.pdf
+!exam_paper_sample_template.pdf

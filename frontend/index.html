@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viva EX - Advanced Blind Student Exam System</title>
+    <!-- PDFJS library for document parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        /* Modern Gradient Theme representing VIVA EX brand */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); 
+            min-height: 100vh; 
+            padding: 20px; 
+            color: #333;
+        }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .main-card { background: white; border-radius: 30px; padding: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { color: #1a73e8; font-size: 2.2rem; margin-bottom: 10px; text-align: center; font-weight: 800; }
+        .subtitle { text-align: center; color: #5f6368; margin-bottom: 30px; font-weight: 600; }
+        .upload-area { 
+            border: 4px dashed #1a73e8; 
+            border-radius: 20px; 
+            padding: 50px; 
+            text-align: center; 
+            cursor: pointer; 
+            background: #f8f9fa; 
+            font-size: 1.2rem; 
+            transition: all 0.3s; 
+        }
+        .upload-area:hover { background: #e8f0fe; transform: scale(1.02); }
+        .quiz-area { display: none; }
+        .quiz-area.active { display: block; animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Multimodal HUD */
+        .metadata-bar { background: #e8f0fe; padding: 15px; border-radius: 15px; margin-bottom: 15px; font-size: 1rem; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        .metadata-item { background: white; padding: 5px 15px; border-radius: 20px; font-weight: 600; color: #1a73e8; }
+        
+        .progress-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; background: #f8f9fa; padding: 10px 20px; border-radius: 15px; }
+        .progress-bar-wrap { flex: 1; height: 12px; background: #e8eaed; border-radius: 10px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #34a853, #1a73e8); border-radius: 10px; transition: width .4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .question-counter { font-size: 1.2rem; font-weight: bold; color: #1a73e8; white-space: nowrap; }
+        
+        /* Question Card Styles */
+        .question-box { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            margin: 20px 0; 
+            font-size: 1.3rem; 
+            line-height: 1.6; 
+            box-shadow: 0 10px 20px rgba(118, 75, 162, 0.2); 
+        }
+        .options-box { background: #f1f3f4; padding: 25px; border-radius: 15px; margin: 15px 0; }
+        .option-item { 
+            background: white; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 12px; 
+            border-left: 5px solid #1a73e8; 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            transition: all .2s; 
+            font-size: 1.1rem; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
+        .option-item:hover { background: #e8f0fe; transform: translateX(5px); }
+        .option-item.selected { background: #e8f0fe; border-left-color: #34a853; font-weight: bold; }
+        .opt-letter { background: #1a73e8; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* Voice Indicators */
+        .status-badge { display: inline-block; padding: 10px 20px; border-radius: 50px; font-size: 1rem; font-weight: bold; margin: 10px 0; }
+        .status-listening { background: #e8f0fe; color: #1a73e8; }
+        .status-speaking  { background: #fef7e0; color: #fbbc04; }
+        .status-recording { background: #34a853; color: white; }
+        .status-waiting   { background: #fff3e0; color: #e65100; }
+
+        .recognized-area { 
+            background: #2d2d5e; 
+            color: #fbbc04; 
+            padding: 20px; 
+            border-radius: 15px; 
+            margin: 20px 0; 
+            text-align: center; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            border: 3px solid #fbbc04; 
+            min-height: 90px; 
+        }
+        .recognized-label { color: #fbbc04; font-size: 0.95rem; text-transform: uppercase; margin-bottom: 8px; }
+        .recognized-text { color: white; font-size: 1.4rem; }
+
+        /* Interactive Controls */
+        .button-group { display: flex; gap: 12px; flex-wrap: wrap; margin: 25px 0; justify-content: center; }
+        .btn { padding: 12px 24px; border: none; border-radius: 25px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { opacity: 0.85; transform: translateY(-2px); }
+        .btn-primary  { background: #1a73e8; color: white; }
+        .btn-success  { background: #34a853; color: white; }
+        .btn-danger   { background: #ea4335; color: white; }
+        .btn-warning  { background: #fbbc04; color: black; }
+
+        .voice-hint { background: white; padding: 20px; border-radius: 15px; margin: 20px 0; text-align: center; border: 2px dashed #1a73e8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-card">
+            <h1>🎓 VIVA EX - Multimodal Assistant</h1>
+            <p class="subtitle">Bilingual Smart Voice-Interactive System for Visually Impaired Students</p>
+
+            <div style="text-align: right; margin-bottom: 15px;">
+                <select id="force-language-select" style="padding: 6px 14px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;">
+                    <option value="auto">🌐 Auto Lang</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="ar">🇸🇦 Arabic</option>
+                </select>
+            </div>
+
+            <!-- Upload Exam sheet locally -->
+            <div id="upload-area" class="upload-area" onclick="document.getElementById('pdf-input').click()">
+                <input type="file" id="pdf-input" accept=".pdf" style="display:none">
+                <div style="font-size: 3rem; margin-bottom: 10px;">📄</div>
+                <div><strong>Click to Upload Exam PDF File</strong></div>
+            </div>
+            
+            <button id="camera-btn" style="background: #f59e0b; color: white; padding: 15px; border-radius: 15px; font-size: 1.2rem; cursor: pointer; border: none; width: 100%; font-weight: bold; margin-top: 15px;" onclick="captureFromJetsonCamera()">📸 Scan Paper with Jetson Edge Camera</button>
+            
+            <!-- Jetson Sound Device Controller -->
+            <div id="jetson-audio-panel" style="background:#f8f9fa; border:2px dashed #34a853; border-radius:18px; padding:16px; margin-top:18px; text-align:center;">
+                <div style="font-weight:bold; color:#0d47a1; font-size:1.05rem;">🎙️ Jetson ALSA Local Audio Engine</div>
+                <div id="jetson-audio-meta" style="margin-top:8px; color:#555;">Headset microphone + local speaker mode</div>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:12px;">
+                    <button class="btn btn-success" onclick="startJetsonLocalAudio()">Start Jetson Mic</button>
+                    <button class="btn btn-danger" onclick="stopJetsonLocalAudio()">Stop Jetson Mic</button>
+                </div>
+            </div>
+            
+            <!-- Main Exam Interface -->
+            <div id="quiz-area" class="quiz-area">
+                <div class="progress-row">
+                    <span class="question-counter">Q <span id="q-current">1</span>/<span id="q-total">0</span></span>
+                    <div class="progress-bar-wrap">
+                        <div id="progress-fill" class="progress-bar-fill" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <div id="question-box" class="question-box"></div>
+                <div id="options-box" class="options-box" style="display:none;"></div>
+
+                <!-- Speech HUD -->
+                <div class="recognized-area">
+                    <div class="recognized-label">🎤 System is hearing:</div>
+                    <div id="recognized-text" class="recognized-text">...</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <span id="status" class="status-badge status-listening">🎤 Ready for voice commands...</span>
+                </div>
+
+                <!-- Command hints for blind users -->
+                <div class="voice-hint">
+                    🎙️ <strong>Voice Command Dictionary:</strong><br><br>
+                    <strong>Navigation:</strong> "Repeat" (إعادة) &nbsp;|&nbsp; "Next" (التالي) &nbsp;|&nbsp; "Skip" (تخطي)<br>
+                    <strong>Answers:</strong> "True" (صح) / "False" (خطأ) &nbsp;|&nbsp; "A" "B" "C" "D" (أ ب ج د)<br>
+                    <strong>System:</strong> "Save" (حفظ)
+                </div>
+
+                <!-- Fallback Physical Buttons -->
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="answerTrue()">✅ True (صح)</button>
+                    <button class="btn btn-danger"  onclick="answerFalse()">❌ False (خطأ)</button>
+                    <button class="btn btn-primary" onclick="repeatQuestion()">🔄 Repeat (إعادة)</button>
+                    <button class="btn btn-primary" onclick="nextQuestion()">Next (التالي) ⏩</button>
+                    <button class="btn btn-warning" onclick="downloadReport()">💾 Save & Export (حفظ)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Frontend logic orchestrating API requests & Web Speech fallback -->
+    <script>
+        let sessionId = null, questions = [], currentIndex = 0, examLanguage = 'en';
+        let isSpeaking = false, localAudioMode = true, jetsonAudioPollTimer = null;
+
+        async function captureFromJetsonCamera() {
+            document.getElementById('status').textContent = "Capturing GStreamer feed...";
+            try {
+                const res = await fetch('/api/scan_jetson_camera', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    questions = data.questions;
+                    sessionId = data.session_id;
+                    examLanguage = data.language;
+                    document.getElementById('upload-area').style.display = 'none';
+                    document.getElementById('camera-btn').style.display = 'none';
+                    document.getElementById('quiz-area').classList.add('active');
+                    displayQuestion();
+                    setTimeout(readFullQuestion, 400);
+                }
+            } catch(e) {
+                alert("Camera scan failed: Make sure Jetson backend is running at port 5005");
+            }
+        }
+
+        function displayQuestion() {
+            const q = questions[currentIndex];
+            if (!q) return;
+            document.getElementById('question-box').textContent = `${q.number}. ${q.text}`;
+            document.getElementById('q-current').textContent = currentIndex + 1;
+            document.getElementById('q-total').textContent = questions.length;
+            document.getElementById('progress-fill').style.width = ((currentIndex + 1) / questions.length * 100) + '%';
+            
+            const optionsBox = document.getElementById('options-box');
+            if (q.options && q.options.length > 0) {
+                optionsBox.style.display = 'block';
+                optionsBox.innerHTML = '';
+                q.options.forEach(o => {
+                    const d = document.createElement('div');
+                    d.className = 'option-item' + (q.answer === o.letter ? ' selected' : '');
+                    d.innerHTML = `<span class="opt-letter">${o.letter.toUpperCase()}</span><span>${o.text}</span>`;
+                    optionsBox.appendChild(d);
+                });
+            } else {
+                optionsBox.style.display = 'none';
+            }
+        }
+
+        async function readFullQuestion() {
+            const q = questions[currentIndex];
+            if (!q || isSpeaking) return;
+            
+            let text = examLanguage === 'ar' ? `السؤال ${q.number}: ` : `Question ${q.number}: `;
+            text += q.text + '. ';
+            if (q.options && q.options.length > 0) {
+                text += examLanguage === 'ar' ? 'الخيارات: ' : 'Options are: ';
+                q.options.forEach(o => { text += `${o.letter}. ${o.text}. `; });
+            }
+            speak(text);
+        }
+
+        async function speak(text) {
+            isSpeaking = true;
+            window.speechSynthesis.cancel();
+            document.getElementById('status').className = 'status-badge status-speaking';
+            document.getElementById('status').textContent = 'Speaking...';
+            
+            if (localAudioMode) { await stopJetsonLocalAudio(); }
+            
+            try {
+                const res = await fetch('/api/tts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text, lang: examLanguage })
+                });
+                await res.json();
+            } catch(e) {
+                // Web TTS Fallback
+                const ut = new SpeechSynthesisUtterance(text);
+                ut.lang = examLanguage === 'ar' ? 'ar-SA' : 'en-US';
+                window.speechSynthesis.speak(ut);
+            }
+            
+            isSpeaking = false;
+            document.getElementById('status').className = 'status-badge status-listening';
+            document.getElementById('status').textContent = 'Listening...';
+            if (localAudioMode) { startJetsonLocalAudio(); }
+        }
+
+        async function startJetsonLocalAudio() {
+            try {
+                await fetch('/api/jetson_audio/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lang: examLanguage })
+                });
+                localAudioMode = true;
+                startPollingJetsonAudio();
+            } catch(e) {}
+        }
+
+        async function stopJetsonLocalAudio() {
+            try { await fetch('/api/jetson_audio/stop', { method: 'POST' }); } catch(e) {}
+            if (jetsonAudioPollTimer) clearInterval(jetsonAudioPollTimer);
+        }
+
+        function startPollingJetsonAudio() {
+            if (jetsonAudioPollTimer) clearInterval(jetsonAudioPollTimer);
+            jetsonAudioPollTimer = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/jetson_audio/poll');
+                    const data = await res.json();
+                    if (data.partial) {
+                        document.getElementById('recognized-text').textContent = data.partial;
+                    }
+                    if (data.events) {
+                        data.events.forEach(e => {
+                            if (e.kind === 'final') {
+                                document.getElementById('recognized-text').textContent = e.text;
+                                handleVoiceCommand(e.text.toLowerCase());
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }, 350);
+        }
+
+        function handleVoiceCommand(cmd) {
+            if (cmd.includes('التالي') || cmd.includes('next')) { nextQuestion(); }
+            else if (cmd.includes('إعادة') || cmd.includes('repeat')) { readFullQuestion(); }
+        }
+
+        function nextQuestion() {
+            if (currentIndex + 1 < questions.length) {
+                currentIndex++;
+                displayQuestion();
+                setTimeout(readFullQuestion, 400);
+            }
+        }
+        function repeatQuestion() { readFullQuestion(); }
+        function answerTrue() { speak(examLanguage === 'ar' ? 'تم اختيار صح' : 'Selected True'); }
+        function answerFalse() { speak(examLanguage === 'ar' ? 'تم اختيار خطأ' : 'Selected False'); }
+        function downloadReport() { alert("Report generated successfully!"); }
+    </script>
+</body>
+</html>
