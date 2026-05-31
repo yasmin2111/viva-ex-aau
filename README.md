@@ -1,185 +1,164 @@
-# VIVA EX — Edge-AI Multimodal Exam & Study Ecosystem for Visually Impaired Students 🚀
+```markdown
+# VIVA EX — Edge-AI Exam Ecosystem for Visually Impaired Students
 
-<div align="center">
-  <h3>🎙️ Edge-Computing • Multimodal Vision • Real-Time Speech • Spatial/Visual Radar</h3>
-  <p><strong>Built on NVIDIA Jetson & Python Edge Orchestration</strong></p>
-  <hr />
-</div>
+**Edge-Computing • Multimodal Vision • Real-Time Speech • Spatial/Visual Radar**
+Built on NVIDIA Jetson & Python Edge Orchestration
 
 ---
 
-## 🌟 Overview / نبذة عن المشروع
+## Overview
 
-**VIVA EX** is a revolutionary, edge-computing multimodal platform designed to empower blind and visually impaired students to study and sit for written exams **with 100% independence**, eliminating the need for human proctors, scribes, or special visual companions.
+VIVA EX is an edge-computing multimodal platform designed to empower visually impaired students to take written exams independently. By eliminating the need for human proctors or scribes, the system provides a fully autonomous examination experience. 
 
-Through an elegant orchestration of **Computer Vision, Local Speech Activity Detection (SAD), Generative AI (LLMs), and Low-Latency Edge Audio pipelines**, VIVA EX scans standard printed A4 exam sheets, translates visual layouts into structured speech, explains visual charts mentally, and parses voice answers in real-time.
-
----
-
-## 🇸🇦 القيمة الابتكارية للمشروع (باللغة العربية)
-
-مشروع **VIVA EX** هو نظام ذكاء اصطناعي تفاعلي متكامل يعمل على معالجة الحواف (Edge Computing) عبر لوحات **NVIDIA Jetson**. يهدف النظام إلى تمكين الطلاب المكفوفين وضعاف البصر من تقديم الامتحانات والدراسة **باستقلالية تامة بنسبة 100%** ودون الحاجة لأي مساعد بشري، من خلال دمج تقنيات متعددة:
-
-* **رادار التخيل المكاني الذكي (Spatial Explain Engine):** يكتشف النظام وجود الرسومات الهندسية، المعادلات، الجداول، أو الخرائط التوضيحية في الامتحان ويقوم بتوليد وصف مكاني دقيق جداً بصرياً ورياضياً ليتمكن الطالب الكفيف من رسم صورة ذهنية للمسألة وحلها بسهولة!
-* **المعالجة الصوتية الذاتية (Local Speech Activity Detection):** يلتقط صوت الطالب من خلال سماعة الرأس ويقوم بتحليل مستويات الصوت تلقائياً لتجنب الضوضاء المحيطة.
-* **التحكم الصوتي الكامل (Bilingual Voice Commands):** تفاعل كامل بدون لمس الشاشة باللغتين العربية والإنجليزية للتنقل والإجابة والتعديل.
-* **المسح الضوئي الذكي (Edge Vision):** التقاط أوراق الامتحانات المطبوعة بواسطة كاميرا Jetson ومعالجتها باستخدام خوارزميات تصحيح الأبعاد لاستخراج الأسئلة وتنسيقها.
+Using a combination of Computer Vision, Local Speech Activity Detection (SAD), Large Language Models (LLMs), and low-latency audio pipelines, VIVA EX scans standard printed A4 exams, translates visual layouts into structured speech, explains visual charts, and processes voice answers in real-time.
 
 ---
 
-## ✨ Core Intelligent Modules / الأنظمة الذكية الأساسية
+## Core System Modules
 
-### 1. 👁️ GStreamer CSI Camera Perspective Scanner (Vision Edge)
-Utilizes an onboard **NVIDIA Jetson Camera** (USB/CSI camera pipeline with hardware-accelerated GStreamer) to capture physical paper exams. A warp-perspective algorithm crops and flattens the document to exact A4 dimensions, followed by high-accuracy OCR extraction and generative JSON question structuring via **Llama-3.3-70b-versatile**.
+### 1. GStreamer CSI Camera Pipeline (Vision Edge)
+Utilizes an onboard NVIDIA Jetson Camera (USB/CSI via hardware-accelerated GStreamer) to capture physical paper exams. A warp-perspective algorithm crops and flattens the document to A4 dimensions, followed by OCR extraction and structured JSON formatting via Llama-3.3-70b-versatile.
 
-### 2. 🎙️ Edge Speech Activity Detection (SAD)
-Employs a custom, asynchronous, hardware-integrated audio recording loop running on **sounddevice** and **NumPy**. It auto-detects USB/ALSA interfaces (like HyperX Headsets), calculates Root-Mean-Square (RMS) audio energy, and triggers speech segments based on voice activity and dynamic silence frames.
+### 2. Edge Speech Activity Detection (SAD)
+A custom, asynchronous audio recording loop built with `sounddevice` and `NumPy`. It interfaces directly with ALSA devices (e.g., USB headsets), calculates Root-Mean-Square (RMS) audio energy, and segments speech dynamically based on voice activity and silence thresholds.
 
-### 3. 🧠 Spatial Visual Map Radar (`/api/ai_explain`)
-* **Our Crowning Innovation:** When a scanned question contains keywords representing visual or spatial elements (e.g., *map, diagram, table, chart, triangle, square, equation*), VIVA EX automatically launches the **Spatial Radar**.
-* The system calls a specialized prompt on Groq to compile a **3D-tactile mental description** of the visual asset, reading it aloud to the student so they can mentally "see" and visualize the drawing.
+### 3. Spatial Visual Mapping
+When a scanned question contains spatial elements (e.g., map, diagram, table, triangle, equation), VIVA EX triggers the Spatial Radar. It compiles a 3D-tactile mental description of the visual asset and reads it aloud, allowing the student to conceptualize the drawing geometry.
 
-### 4. 🗣️ Real-Time Bilingual Dialog Engine (Arabic/English STT & TTS)
-Orchestrates low-latency **Deepgram Nova-3 API** for lightning-fast speech-to-text (highly optimized for Arabic and English regional accents) and synthesizes speech responses back to the local headphones using ALSA output (`aplay -D plughw:{card_num},0`).
+### 4. Real-Time Bilingual Dialog Engine
+Integrates the Deepgram Nova-3 API for low-latency speech-to-text (optimized for regional dialects) and synthesizes audio responses back to the local headphones using direct ALSA output (`aplay -D plughw:{card_num},0`).
 
-### 5. 🖨️ Physical Tactile Companion (Raspberry Pi Printing)
-Integrates with a secondary local server running on a **Raspberry Pi** via safe curl payloads to automatically print/emboss tactile answer reports once the student verbally triggers "Save" (حفظ).
+### 5. Physical Tactile Companion 
+Communicates with a secondary local Raspberry Pi server via HTTP POST payloads to automatically print or emboss tactile answer reports when the student triggers the verbal "Save" command.
 
 ---
 
-## 🔄 Multimodal AI Pipeline / مخطط تدفق البيانات المعالج بالذكاء الاصطناعي
+## Multimodal AI Pipeline
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor BlindStudent as Visual Impaired Student
-    participant JetsonCam as CSI Camera / GStreamer
-    participant VisionAI as Perspective Warp & Groq OCR
-    participant CoreEngine as VIVA EX Core (Flask)
-    participant SpeechRadar as Spatial Explain Radar
-    participant SADLoop as Local SAD Audio Loop
-    participant Deepgram as Deepgram Nova-3 API
-    participant CompanionPi as Companion Raspberry Pi Printer
+    actor Student as Visually Impaired Student
+    participant Jetson as Jetson Camera / Vision AI
+    participant Core as VIVA EX Core (Flask)
+    participant Speech as Spatial Explain Radar
+    participant Audio as Local SAD / Deepgram
+    participant Print as Raspberry Pi Printer
 
-    JetsonCam->>VisionAI: 1. Capture Raw Exam Paper Frame
-    VisionAI->>CoreEngine: 2. Structured Questions (JSON format)
-    CoreEngine->>SpeechRadar: 3. Audit question text for Visual Diagrams
-    SpeechRadar-->>CoreEngine: 4. Inject Mental Spatial Abstraction
-    CoreEngine->>BlindStudent: 5. Read aloud Question + Visual description via Headset (TTS)
+    Jetson->>Core: Capture frame & extract structured JSON questions
+    Core->>Speech: Audit text for visual/spatial diagrams
+    Speech-->>Core: Generate mental spatial abstraction
+    Core->>Student: Read question + visual description via TTS
     
-    Note over BlindStudent, SADLoop: Student speaks answer or navigation command
-    SADLoop->>Deepgram: 6. Capture Voice Chunk (PCM WAV via RAM)
-    Deepgram-->>CoreEngine: 7. Transcribed Arabic/English Command Text
-    CoreEngine->>CoreEngine: 8. Execute Voice Command (Next/Repeat/Answer A-D)
+    Note over Student, Audio: Student speaks answer or command
+    Audio->>Core: Process voice chunk & transcribe
+    Core->>Core: Execute command (Next/Answer)
     
-    Note over BlindStudent, CoreEngine: When Student says "Save" (حفظ)
-    CoreEngine->>CompanionPi: 9. HTTP Post print report
-    CompanionPi-->>BlindStudent: 10. Physical Braille / Print confirmation
+    Note over Student, Core: Student verbally triggers "Save"
+    Core->>Print: HTTP POST print trigger
+    Print-->>Student: Physical Braille/Print confirmation
+
 ```
 
 ---
 
-## 🏗️ System Hardware Architecture / هيكلية الاتصال المادية للنظام
+## Hardware Architecture
 
 ```mermaid
 graph TD
-    subgraph Edge Hardware Node [NVIDIA Jetson Xavier/Nano]
-        A[Flask Core Engine] -->|GStreamer Pipeline| B[OpenCV / CSI Camera]
-        A -->|RMS Volume SAD Loop| C[HyperX Gaming Headset MIC]
-        A -->|ALSA Direct Playback| D[Headset Stereo Speaker]
-        A -->|os.getenv Environment| E[.env Secure Credentials]
+    subgraph Edge Node [NVIDIA Jetson]
+        A[Flask Core Engine] -->|GStreamer| B[OpenCV / Camera]
+        A -->|RMS SAD Loop| C[Headset MIC]
+        A -->|ALSA Playback| D[Headset Speaker]
     end
 
-    subgraph Companion Output Node
-        A -->|Safe curl POST| F[Raspberry Pi Print Server]
-        F -->|Physical Embossing| G[Braille/Tactile Printer]
+    subgraph Companion Output
+        A -->|Local POST| F[Raspberry Pi Server]
+        F -->|Embossing| G[Braille Printer]
     end
 
-    subgraph Secure Cloud AI Services
-        A -->|HTTPS / Groq SDK| H[Llama-3.3 Visual Explanation]
-        A -->|HTTPS Audio Streams| I[Deepgram Nova-3 STT API]
+    subgraph Cloud Services
+        A -->|HTTPS| H[Llama-3.3 API]
+        A -->|WSS| I[Deepgram Nova-3 STT]
     end
 
-    style Edge Hardware Node fill:#1a73e8,stroke:#0d47a1,stroke-width:2px,color:#fff
-    style Companion Output Node fill:#34a853,stroke:#137333,stroke-width:2px,color:#fff
-    style Secure Cloud AI Services fill:#764ba2,stroke:#512da8,stroke-width:2px,color:#fff
 ```
 
 ---
 
-## 🛠️ Technologies Used / التقنيات المستخدمة
+## Technologies Used
 
-### Frontend & Interface
-* **HTML5 & Vanilla CSS3:** Premium design with interactive status badges indicating Microphone state.
-* **JavaScript (Fetch & Events):** Handles high-frequency polling from Jetson ALSA status endpoints.
-* **PDFJS Library:** Serves as a local rendering fallback for teacher interfaces.
-
-### Backend & Audio Loop
-* **Python Flask Framework:** Lightweight, high-throughput edge routing.
-* **Sounddevice & NumPy:** High-performance hardware loop calculations for sound levels.
-* **OpenCV & GStreamer:** Captures and rotates high-definition video frames locally at low CPU loads.
-
-### AI Engines
-* **Groq Llama-3.3-70b-versatile:** Extracts exam tables/geometry and generates spatial descriptions.
-* **Deepgram Nova-3 API:** Ultra-low latency voice transcriber with specialized Arabic parsing.
-* **Google Text-To-Speech (gTTS) & FFMPEG:** Offline WAV rendering played on Edge ALSA cards.
+* **Frontend:** HTML5, CSS3, JavaScript (Fetch API for ALSA polling), PDFJS.
+* **Backend:** Python, Flask, Sounddevice, NumPy, OpenCV, GStreamer.
+* **AI & Audio:** Llama-3.3-70b-versatile, Deepgram Nova-3, gTTS, FFmpeg.
 
 ---
 
-## 📂 Public Repository Structure / هيكل المستودع العام
+## Repository Structure
 
 ```text
-viva-ex-public-repo/
-│
+viva-ex/
 ├── backend/
-│   └── app_jetson_local.py    # Public backend exposing vision and local sound SAD loops
-│
+│   └── app_jetson_local.py    # Main Flask backend and SAD loops
 ├── frontend/
-│   └── index.html             # Sleek frontend template with interactive Speech HUD
-│
-├── .gitignore                 # Excludes credentials, caches, logs, and wav audio files
-├── .env.example               # Secure placeholder variables template for easy setup
-└── README.md                  # Beautiful bilingual interactive presentation
+│   └── index.html             # Client interface with interactive Speech HUD
+├── .gitignore                 
+├── .env.example               # Template for environment variables
+└── README.md                  
+
 ```
 
 ---
 
-## 🚀 Setup & Installation / خطوات التشغيل للمحكمين
+## Setup & Installation
 
-### 1. Pre-requisites & Audio Dependencies
-Install ALSA audio libraries and visual dependencies on your local machine or NVIDIA Jetson:
+### 1. Audio & Vision Dependencies
+
+Install ALSA and GStreamer libraries on your Jetson or local Linux machine:
+
 ```bash
+sudo apt-get update
 sudo apt-get install portaudio19-dev ffmpeg libgstreamer1.0-dev opencv-data
+
 ```
 
-### 2. Environment Configuration
-Clone this repository, duplicate `.env.example` into `.env`, and insert your credentials securely:
+### 2. Environment Variables
+
+Copy the environment template and add your API keys:
+
 ```bash
 cp .env.example .env
-```
-Edit `.env` and fill:
-* `GROQ_API_KEY=your_secure_groq_key`
-* `DEEPGRAM_API_KEY=your_secure_deepgram_key`
 
-### 3. Install Python Dependencies
+```
+
+Ensure you populate `GROQ_API_KEY` and `DEEPGRAM_API_KEY` in the `.env` file.
+
+### 3. Python Requirements
+
 ```bash
 pip install flask sounddevice soundfile numpy requests python-dotenv gTTS
+
 ```
 
-### 4. Run the Engine
-Launch the Flask backend core:
+### 4. Run the Platform
+
+Start the backend server:
+
 ```bash
 python backend/app_jetson_local.py
+
 ```
-Open `frontend/index.html` in your browser to experience the visual voice panel!
+
+Open `frontend/index.html` in your browser to access the dashboard.
 
 ---
 
-## 📈 Future Milestones / الرؤية المستقبلية للمشروع
+## Future Milestones
 
-* [ ] **Local LLM Fine-Tuning:** Fine-tuning Llama-3.2-3B locally on the Jetson to run the Spatial Explain Radar completely **100% offline** with zero internet connection.
-* [ ] **CSI Stereo Depth Integration:** Implementing dual camera vision to detect distance and emboss coordinates automatically.
-* [ ] **Multi-Agent Companion System:** Integrating ROS robots to physically navigate visually impaired students to the exam hall and seat them.
+* **Local LLM Execution:** Fine-tuning Llama-3.2-3B to run natively on the Jetson, enabling the Spatial Explain Radar to function 100% offline.
+* **Stereo Depth Integration:** Adding CSI dual-camera support to detect document distance and dynamically adjust OCR focal points.
+* **Multi-Agent Companion:** Integrating ROS to help physically guide students to their exam desks, utilizing precise servo robot connections for accurate movement and haptic feedback.
 
----
+```
 
+```
