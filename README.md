@@ -312,8 +312,4 @@ Then open `frontend/index.html` in a browser.
 
 ---
 
-## About
 
-Built as a graduation project at **Amman Arab University**.
-
-Supervisor: Lial Alzabin
