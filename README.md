@@ -183,8 +183,3 @@ Open `frontend/index.html` in your browser to experience the visual voice panel!
 
 ---
 
-## 👨‍💻 University & Authors Meta
-
-* **Academic Institution:** Amman Arab University (جامعة عمان العربية)
-* **Supervisor:** Lial Alzabin (أ. ليال الزبن)
-* **License:** This project is released for educational, academic, and research competition purposes.
